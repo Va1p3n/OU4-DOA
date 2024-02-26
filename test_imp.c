@@ -10,7 +10,7 @@
  * made by: Ronny Wegner (c23rwr)
  * 
  */
-#define max 100
+#define MAX_SIZE 100
 
 void error(const char* FAIL,const char* GOT)
 {
@@ -24,7 +24,7 @@ void error(const char* FAIL,const char* GOT)
  */
 void new_graph_is_empty()
 {
-    graph *g = graph_empty(max);
+    graph *g = graph_empty(MAX_SIZE);
 
     if(!graph_is_empty(g))
     {
@@ -41,7 +41,7 @@ void new_graph_is_empty()
  */
 void new_graph_has_no_edges()
 {
-    graph *g = graph_empty(max);
+    graph *g = graph_empty(MAX_SIZE);
     if(graph_has_edges(g))
     {
         error(  "Fail: Excepted new graph to not have edges",
@@ -62,10 +62,10 @@ void new_graph_has_no_edges()
  */
 graph *new_graph_with_x_amount_of_nodes(int i)
 {
-    graph *g = graph_empty(max);
+    graph *g = graph_empty(MAX_SIZE);
 
-    char str[10];
-    for( int j = 1; j < i + 1;++i)
+    char str[100];
+    for( int j = 1; j < i + 1;++j)
     {
         sprintf(str,"nod%d",j);
         g = graph_insert_node(g,str);
@@ -80,7 +80,6 @@ graph *new_graph_with_x_amount_of_nodes(int i)
 void graph_insert_a_node()
 {
     graph *g = new_graph_with_x_amount_of_nodes(1);
-
     if(graph_is_empty(g))
     {
         error(  "Fail: Expected a node in graph",
@@ -142,6 +141,53 @@ void get_second_node_from_graph()
     fprintf(stderr, "get_second_node_from_graph - OK\n");
 }
 
+void check_neighbors()
+{
+
+    graph *g = new_graph_with_x_amount_of_nodes(2);
+
+    // Get the node corresponding to the node name
+    node *n1 = graph_find_node(g,"nod1");
+    node *n2 = graph_find_node(g,"nod2");
+    
+    graph_insert_edge(g,n1,n2);
+
+    // Get the neighborlist
+    dlist *neighbors = graph_neighbours(g,n1); 
+
+    // get the neighbor node 
+
+
+    dlist_pos pos = dlist_first(neighbors);
+
+    // Hava bool to turn true if the neighbor is 
+    // in the list 
+    bool found_the_neighbor = false;
+
+    // Look for the neighbor inte the list 
+    while(!dlist_is_end(neighbors,pos))
+    {
+        node *compare_node = dlist_inspect(neighbors,pos);
+
+        if(nodes_are_equal(n2,compare_node))
+        {
+            found_the_neighbor = true;
+        }
+        pos = dlist_next(neighbors,pos);
+    }
+
+
+    if(!found_the_neighbor)
+    {
+        error(  "FAIL: did not find the neigbor when asked after",
+                "GOT: No neighbor found when edges was inserted");
+    }
+
+    dlist_kill(neighbors);
+    graph_kill(g);
+    fprintf(stderr, "check_neighbors - OK\n");
+}
+
 /**
  * The function `new_node_is_seen` creates a new graph with one node, checks if the node is marked as
  * seen, and reports an error if it is.
@@ -177,7 +223,7 @@ void node_set_to_seen()
     if(!graph_node_is_seen(g,n))
     {
         error(  "FAIL: Node marked as not seen after marked seen",
-                "Expected: New node to marked seen");
+                "Expected: Node to be marked as seen");
     }
 
     graph_kill(g);
@@ -215,22 +261,39 @@ void node_set_to_seen_then_not_to_seen()
 
 void check_if_reset_seen_works()
 {
-    graph *g = new_graph_with_x_amount_of_nodes(1);
+    graph *g = new_graph_with_x_amount_of_nodes(6);
 
-    node *n = graph_find_node(g,"nod1");
+    char node_name[10];
+    node *n;
 
-    g = graph_node_set_seen(g,n,true);
+
+    // Mark every node as seen
+    for(int i = 1; i <= 6; ++i)
+    {
+        sprintf(node_name,"nod%d",i);
+        n = graph_find_node(g,node_name);
+
+        g = graph_node_set_seen(g,n,true);
+    }
 
     g = graph_reset_seen(g);
 
-    if(graph_node_is_seen(g,n))
+    // Check if every node is not seen. 
+    for(int i = 1; i <= 6; ++i)
     {
-        error(  "FAIL: Wiped nodes from seen still read as seen ",
-                "Expected: Not to see seen");
+        sprintf(node_name,"nod%d",i);
+        n = graph_find_node(g,node_name);
+
+        if(graph_node_is_seen(g,n))
+        {
+            error(  "FAIL: Wiped nodes from seen still read as seen ",
+                    "Expected: Not to see seen");
+        }
     }
 
+
     graph_kill(g);
-    fprintf(stderr," check_if_reset_seen_works - OK\n");
+    fprintf(stderr,"check_if_reset_seen_works - OK\n");
 }
 
 
@@ -243,6 +306,7 @@ int main(void)
     check_if_the_nodes_selfreference();
     get_node_from_graph();
     get_second_node_from_graph();
+    check_neighbors();
     new_node_is_seen();
     node_set_to_seen();
     node_set_to_seen_then_not_to_seen();
