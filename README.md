@@ -25,3 +25,6 @@ This implementetion will be made using a dynamic datatype. Table?
 ## Is_connected.c (MAIN)
 This is the main program and starts by reading a directed graph from the input file (passed as a argument). It is later
 suposed to be interactable and answer if two nodes are connected by doing a width-first search.
+
+###### Compile command test
+***gcc -Wall -I lib -o testimp lib/array_1d.c lib/array_2d.c lib/dlist.c test_imp.c graph.c***

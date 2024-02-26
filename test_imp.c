@@ -1,0 +1,252 @@
+#include <stdio.h>
+#include <graph.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <dlist.h>
+/**
+ * @brief This is a fast test to test if a graph impletion 
+ * manages simple implementations
+ * 
+ * made by: Ronny Wegner (c23rwr)
+ * 
+ */
+#define max 100
+
+void error(const char* FAIL,const char* GOT)
+{
+    fprintf(stderr,"%s\n",FAIL);
+    fprintf(stderr,"%s\n",GOT);
+    exit(EXIT_FAILURE);
+}
+/**
+ * The function `new_graph_is_empty` creates a new graph and checks if it is empty, printing an error
+ * message if it is not.
+ */
+void new_graph_is_empty()
+{
+    graph *g = graph_empty(max);
+
+    if(!graph_is_empty(g))
+    {
+        error(  "Fail: expected new created graph to be empty",
+                "Got: the newly created graph is not");
+    }
+
+    graph_kill(g);
+    fprintf(stderr,"new_graph_is_empty - OK\n");
+}
+
+/**
+ * The function `new_graph_has_no_edges` creates a new graph and checks if it has no edges.
+ */
+void new_graph_has_no_edges()
+{
+    graph *g = graph_empty(max);
+    if(graph_has_edges(g))
+    {
+        error(  "Fail: Excepted new graph to not have edges",
+                "Got: new graph has edges");
+    }
+
+    graph_kill(g);
+    fprintf(stderr,"new_graph_has_no_edges - OK\n");
+}
+
+/**
+ * Creates a graph with a specified number of nodes named "nod1", "nod2", ..., "nodi".
+ * 
+ * @param g An existing graph pointer.
+ * @param i The number of nodes to create in the graph.
+ * 
+ * @return A graph pointer to the newly created graph with `i` nodes.
+ */
+graph *new_graph_with_x_amount_of_nodes(int i)
+{
+    graph *g = graph_empty(max);
+
+    char str[10];
+    for( int j = 1; j < i + 1;++i)
+    {
+        sprintf(str,"nod%d",j);
+        g = graph_insert_node(g,str);
+    }
+    return g;
+}
+
+/**
+ * The function graph_insert_a_node creates a graph, inserts a node named "node1", and checks if the
+ * graph is not empty.
+ */
+void graph_insert_a_node()
+{
+    graph *g = new_graph_with_x_amount_of_nodes(1);
+
+    if(graph_is_empty(g))
+    {
+        error(  "Fail: Expected a node in graph",
+                "Got: The graph is still empty");
+    }
+    graph_kill(g);
+    fprintf(stderr,"graph_insert_a_nod - OK\n");
+}
+
+/**
+ * The function checks if a graph node has a self-reference.
+ */
+void check_if_the_nodes_selfreference()
+{
+    graph *g = new_graph_with_x_amount_of_nodes(1);
+
+    if(!graph_has_edges(g))
+    {
+        error(  "FAIL: Expected selfreference",
+                "GOT: No edges in the graph after insertion");
+    }
+    graph_kill(g);
+    fprintf(stderr,"check_if_the_nodes_selfreference - OK\n");
+        
+}
+
+/**
+ * The function `get_node_from_graph` creates a graph with one node, searches for a specific node, and
+ * then cleans up the graph.
+ */
+void get_node_from_graph()
+{
+    graph *g = new_graph_with_x_amount_of_nodes(1);
+
+    if(NULL == graph_find_node(g,"nod1"))
+    {
+        error(  "FAIL: Didn't find a node",
+                "GOT: NULL as node pointer");
+    }
+
+    graph_kill(g);
+    fprintf(stderr, "get_node_from_graph - OK\n");
+}
+
+/**
+ * The function creates a graph with two nodes and checks if the second node is present in the graph.
+ */
+void get_second_node_from_graph()
+{
+    graph *g = new_graph_with_x_amount_of_nodes(2);
+
+    if(NULL == graph_find_node(g,"nod2"))
+    {
+        error(  "FAIL: Didn't find a node",
+                "GOT: NULL as node pointer");
+    }
+
+    graph_kill(g);
+    fprintf(stderr, "get_second_node_from_graph - OK\n");
+}
+
+/**
+ * The function `new_node_is_seen` creates a new graph with one node, checks if the node is marked as
+ * seen, and reports an error if it is.
+ */
+void new_node_is_seen()
+{
+    graph *g = new_graph_with_x_amount_of_nodes(1);
+
+    node *n = graph_find_node(g,"nod1");
+
+    if(graph_node_is_seen(g,n))
+    {
+        error(  "FAIL: New node marked as seen",
+                "Expected: New node not to be seen");
+    }
+
+    graph_kill(g);
+    fprintf(stderr,"new_node_is_seen - OK\n");
+}
+
+/**
+ * The function `node_set_to_seen` creates a graph with one node, marks the node as seen, and checks if
+ * the node is marked as seen.
+ */
+void node_set_to_seen()
+{
+    graph *g = new_graph_with_x_amount_of_nodes(1);
+
+    node *n = graph_find_node(g,"nod1");
+
+    g = graph_node_set_seen(g,n,true);
+
+    if(!graph_node_is_seen(g,n))
+    {
+        error(  "FAIL: Node marked as not seen after marked seen",
+                "Expected: New node to marked seen");
+    }
+
+    graph_kill(g);
+    fprintf(stderr,"node_set_to_seen - OK\n");
+
+}
+
+/**
+ * The function creates a graph with one node, sets the node as seen, then checks if the node is seen
+ * and prints a message accordingly.
+ */
+void node_set_to_seen_then_not_to_seen()
+{
+    graph *g = new_graph_with_x_amount_of_nodes(1);
+
+    node *n = graph_find_node(g,"nod1");
+
+    g = graph_node_set_seen(g,n,true);
+
+    if(!graph_node_is_seen(g,n))
+    {
+        error(  "FAIL: Node read as seen",
+                "Expected: Node read as not seen");
+    }
+
+    graph_kill(g);
+    fprintf(stderr,"new_node_to_seen_then_not_to_seen - OK\n");
+
+}
+
+/**
+ * The function `check_if_reset_seen_works` tests the functionality of marking a node as seen and then
+ * resetting the seen status in a graph data structure.
+ */
+
+void check_if_reset_seen_works()
+{
+    graph *g = new_graph_with_x_amount_of_nodes(1);
+
+    node *n = graph_find_node(g,"nod1");
+
+    g = graph_node_set_seen(g,n,true);
+
+    g = graph_reset_seen(g);
+
+    if(graph_node_is_seen(g,n))
+    {
+        error(  "FAIL: Wiped nodes from seen still read as seen ",
+                "Expected: Not to see seen");
+    }
+
+    graph_kill(g);
+    fprintf(stderr," check_if_reset_seen_works - OK\n");
+}
+
+
+
+int main(void)
+{
+    new_graph_is_empty();
+    new_graph_has_no_edges();
+    graph_insert_a_node();
+    check_if_the_nodes_selfreference();
+    get_node_from_graph();
+    get_second_node_from_graph();
+    new_node_is_seen();
+    node_set_to_seen();
+    node_set_to_seen_then_not_to_seen();
+    check_if_reset_seen_works();
+    printf("All test successfully completed\n");
+    return 0; 
+}

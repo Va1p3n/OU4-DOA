@@ -20,13 +20,14 @@
 // ====================== PUBLIC DATA TYPES ==========================
 
 typedef struct node {
-	char *src;
-	array_1d **dst;
+	const char *src;
+	int index;
+	// array_1d *dst;
 	bool seen;
 } node;
 
 typedef struct graph {
-	array_2d *nodes;
+	array_2d *matrix;
 	array_1d *index_map;
 	int nodes_added;
 	int max_nodes;
@@ -34,9 +35,9 @@ typedef struct graph {
 
 // =================== INTERNAL FUNCTIONS ======================
 
-int node_index(graph *g, const char *s)
+int node_index(const graph *g, const char *s)
 {
-	for (int i = 0; i < array_1d_high(g->index_map); i++)
+	for (int i = 0; i <= array_1d_high(g->index_map); i++)
 	{
 		if (strcmp(array_1d_inspect_value(g->index_map, i), s) == 0)
 		{
@@ -52,10 +53,19 @@ node *new_node(graph *g, const char *s)
 	node *new_node = malloc(sizeof(node));
 
 	new_node->src = s;
-	new_node->dst = array_1d_create(0, g->max_nodes - 1, free);
+	new_node->index = g->nodes_added;
+	// new_node->dst = array_1d_create(0, g->max_nodes - 1, free);
 	new_node->seen = false;
 
 	return new_node;
+}
+
+void free_node(node *n)
+{
+	if (n == NULL)
+		return;
+
+	free(n->src);
 }
 
 // =================== GRAPH STRUCTURE ======================
@@ -74,7 +84,7 @@ graph *graph_empty(int max_nodes)
 	new_graph->max_nodes = max_nodes;
 
 	new_graph->index_map = array_1d_create(0, max_nodes - 1, free);
-	new_graph->nodes = array_2d_create(0, max_nodes - 1, 0, max_nodes - 1, free);
+	new_graph->matrix = array_2d_create(0, max_nodes - 1, 0, max_nodes - 1, free);
 
 	return new_graph;
 }
@@ -107,7 +117,9 @@ graph *graph_insert_node(graph *g, const char *s)
 		return g;
 
 	// Adds the node to the graph
-	array_1d_set_value(g->index_map, s, g->nodes_added);
+	array_1d_set_value(g->index_map, new_node(g, s), g->nodes_added);
+
+	g->nodes_added += 1;
 
 	return g;
 }
@@ -121,5 +133,106 @@ graph *graph_insert_node(graph *g, const char *s)
  */
 node *graph_find_node(const graph *g, const char *s)
 {
+	return array_1d_inspect_value(g->index_map, node_index(g, s));
+}
+
+/**
+ * graph_node_is_seen() - Return the seen status for a node.
+ * @g: Graph storing the node.
+ * @n: Node in the graph to return seen status for.
+ *
+ * Returns: The seen status for the node.
+ */
+bool graph_node_is_seen(const graph *g, const node *n)
+{
+	return n->seen;
+}
+
+/**
+ * graph_node_set_seen() - Set the seen status for a node.
+ * @g: Graph storing the node.
+ * @n: Node in the graph to set seen status for.
+ * @s: Status to set.
+ *
+ * Returns: The modified graph.
+ */
+graph *graph_node_set_seen(graph *g, node *n, bool seen)
+{
+	n->seen = seen;
+
+	return g;
+}
+
+/**
+ * graph_reset_seen() - Reset the seen status on all nodes in the graph.
+ * @g: Graph to modify.
+ *
+ * Returns: The modified graph.
+ */
+graph *graph_reset_seen(graph *g)
+{
+	if (graph_is_empty(g))
+		return g;
 	
+
+	for (int i = 0; i <= array_1d_high(g->index_map); i++)
+	{
+		node *node = array_1d_inspect_value(g->index_map, i);
+
+		node->seen = false;
+	}
+	
+	return 0;
+}
+
+/**
+ * graph_insert_edge() - Insert an edge into the graph.
+ * @g: Graph to manipulate.
+ * @n1: Source node (pointer) for the edge.
+ * @n2: Destination node (pointer) for the edge.
+ *
+ * NOTE: Undefined unless both nodes are already in the graph.
+ *
+ * Returns: The modified graph.
+ */
+graph *graph_insert_edge(graph *g, node *n1, node *n2)
+{
+	bool n1_in_graph = !strcmp(n1->src, ((node*)array_1d_inspect_value(g->index_map, n1->index))->src);
+	bool n2_in_graph = !strcmp(n2->src, ((node*)array_1d_inspect_value(g->index_map, n2->index))->src);
+	
+	if (!n1_in_graph || !n2_in_graph)
+		return NULL;
+	
+
+	int *value = malloc(sizeof(int));
+	*value = 1;
+
+	array_2d_set_value(g->matrix, value, n1->index, n2->index);
+
+	return g;
+}
+
+/**
+ * graph_neighbours() - Return a list of neighbour nodes.
+ * @g: Graph to inspect.
+ * @n: Node to get neighbours for.
+ *
+ * Returns: A pointer to a list of nodes. Note: The list must be
+ * dlist_kill()-ed after use.
+ */
+dlist *graph_neighbours(const graph *g,const node *n)
+{
+	dlist *neighbors = dlist_empty(free_node);
+
+	for (int i = 0; i < g->max_nodes; i++)
+	{
+		int *value = array_2d_inspect_value(g->matrix, n->index, i);
+
+		if (*value)
+		{
+			dlist_insert(neighbors, array_1d_inspect_value(g->index_map, i), dlist_first(neighbors));
+		}
+	}
+
+	return neighbors;
 }
