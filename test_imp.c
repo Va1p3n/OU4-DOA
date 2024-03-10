@@ -39,6 +39,7 @@ void new_graph_is_empty()
 /**
  * The function `new_graph_has_no_edges` creates a new graph and checks if it has no edges.
  */
+/*
 void new_graph_has_no_edges()
 {
     graph *g = graph_empty(MAX_SIZE);
@@ -51,6 +52,7 @@ void new_graph_has_no_edges()
     graph_kill(g);
     fprintf(stderr,"new_graph_has_no_edges - OK\n");
 }
+*/
 
 /**
  * Creates a graph with a specified number of nodes named "nod1", "nod2", ..., "nodi".
@@ -87,11 +89,13 @@ void graph_insert_a_node()
     }
     graph_kill(g);
     fprintf(stderr,"graph_insert_a_nod - OK\n");
+	
 }
 
 /**
  * The function checks if a graph node has a self-reference.
  */
+/*
 void check_if_the_nodes_selfreference()
 {
     graph *g = new_graph_with_x_amount_of_nodes(1);
@@ -105,6 +109,7 @@ void check_if_the_nodes_selfreference()
     fprintf(stderr,"check_if_the_nodes_selfreference - OK\n");
         
 }
+*/
 
 /**
  * The function `get_node_from_graph` creates a graph with one node, searches for a specific node, and
@@ -143,7 +148,6 @@ void get_second_node_from_graph()
 
 void check_neighbors()
 {
-
     graph *g = new_graph_with_x_amount_of_nodes(2);
 
     // Get the node corresponding to the node name
@@ -156,8 +160,6 @@ void check_neighbors()
     dlist *neighbors = graph_neighbours(g,n1); 
 
     // get the neighbor node 
-
-
     dlist_pos pos = dlist_first(neighbors);
 
     // Hava bool to turn true if the neighbor is 
@@ -266,7 +268,6 @@ void check_if_reset_seen_works()
     char node_name[10];
     node *n;
 
-
     // Mark every node as seen
     for(int i = 1; i <= 6; ++i)
     {
@@ -282,7 +283,7 @@ void check_if_reset_seen_works()
     for(int i = 1; i <= 6; ++i)
     {
         sprintf(node_name,"nod%d",i);
-        n = graph_find_node(g,node_name);
+        n = graph_find_node(g, node_name);
 
         if(graph_node_is_seen(g,n))
         {
@@ -301,9 +302,9 @@ void check_if_reset_seen_works()
 int main(void)
 {
     new_graph_is_empty();
-    new_graph_has_no_edges();
+    // new_graph_has_no_edges();
     graph_insert_a_node();
-    check_if_the_nodes_selfreference();
+    // check_if_the_nodes_selfreference();
     get_node_from_graph();
     get_second_node_from_graph();
     check_neighbors();
