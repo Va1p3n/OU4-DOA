@@ -5,7 +5,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/is_connected",
-            "args": [],
+            "args": ["${fileDirname}/airmap1.map"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

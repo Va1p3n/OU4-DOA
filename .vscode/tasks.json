@@ -10,8 +10,10 @@
                 "${fileDirname}/is_connected.c",
 				"-I",
 				"lib",
+				"graph.c",
+				"lib/array_1d.c",
+				"lib/array_2d.c",
 				"lib/dlist.c",
-				"${fileDirname}/graph.c",
                 "-o",
                 "${fileDirname}/is_connected"
             ],
