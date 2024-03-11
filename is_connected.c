@@ -16,7 +16,7 @@
  * 
  * Author: Felix Vallström (c23fvm)
  * 
- * Hand in date: 2024-02-20
+ * Hand in date: 2024-03-11
  * 
  * Version:
  *   2024-02-20: v1.0. First hand in
@@ -290,7 +290,6 @@ int main(int argc, char const *argv[])
 		}
 	} while (!quit);
 	
-
 	graph_kill(map);
 	
 	return 0;

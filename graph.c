@@ -11,7 +11,7 @@
  * 
  * Author: Felix Vallström (c23fvm)
  * 
- * Hand in date: 2024-03-10
+ * Hand in date: 2024-03-11
  * 
  * Version:
  *   2024-02-20: v1.0. First hand in
@@ -61,20 +61,17 @@ node *new_node(graph *g, const char *s)
 	return new_node;
 }
 
-void free_node(node *n)
-{
-	if (n != NULL && n->src != NULL)
-	{
-		free(n->src);
-		free(n);
-	}
-}
-
 void free_all_nodes(array_1d *nodes, int amount_nodes_added)
 {
 	for (int i = 0; i < amount_nodes_added; i++)
 	{
-		free_node(array_1d_inspect_value(nodes, i));
+		node *n = array_1d_inspect_value(nodes, i);
+
+		if (n != NULL && n->src != NULL)
+		{
+			free(n->src);
+			free(n);
+		}
 	}
 }
 

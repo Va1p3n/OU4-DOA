@@ -24,12 +24,12 @@ def update_hand_in_date(file_path):
 
 
 def compile_file(file_name):
-    compile_command = f"gcc -std=c99 -Wall -Werror -g -I lib -o {file_name}test test_imp.c {file_name}.c"
+    compile_command = f"gcc -std=c99 -Wall -Werror -g -I lib -o {file_name}test test_imp.c {file_name}.c lib/dlist.c"
 
-    if file_name == "graph" or file_name == "table":
-        compile_command += " lib/dlist.c lib/array_1d.c lib/array_2d.c"
-    elif file_name == "arraytable":
-         compile_command += " lib/array_1d.c"
+    if file_name == "graph":
+        compile_command += " lib/array_1d.c lib/array_2d.c"
+    elif file_name == "graph2":
+         compile_command += ""
 
     try:
         subprocess.run(compile_command, shell=True, check=True)
@@ -63,11 +63,11 @@ update_hand_in_date(files[1])
 update_hand_in_date(files[2])
 
 compile_file(files[0])
-# compile_file(files[1])
+compile_file(files[1])
 
 if comp_err > 0:
     quit()
     
 if "--no-mem" not in sys.argv:
-	for file in files:
-		mem_leak_test(file)
+	mem_leak_test(files[0])
+	mem_leak_test(files[1])

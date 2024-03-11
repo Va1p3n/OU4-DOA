@@ -29,3 +29,10 @@ suposed to be interactable and answer if two nodes are connected by doing a widt
 
 ###### Compile command test
 ***gcc -Wall -I lib -o testimp lib/array_1d.c lib/array_2d.c lib/dlist.c test_imp.c graph.c***
+
+***gcc -Wall -I lib -o testimp lib/dlist.c test_imp.c graph2.c***
+
+###### Compile command is_connected
+***gcc -Wall -std=c99 -o is_connected is_connected.c graph.c -I lib lib/queue.c lib/list.c lib/array_1d.c lib/array_2d.c***
+
+***gcc -Wall -std=c99 -o is_connected_2 is_connected.c graph2.c -I lib lib/dlist.c lib/queue.c lib/list.c***
