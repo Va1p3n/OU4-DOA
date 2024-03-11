@@ -34,26 +34,46 @@ typedef struct graph {
 
 // =================== INTERNAL FUNCTIONS ======================
 
+/**
+ * node_index() - gets the index of the node in the matrix and list.
+ * @g: Pointer to Graph where we search for the node.
+ * @s: Label for the node.
+ * 
+ * Returns: index of node if the label is in the graph, otherwise -1.
+*/
 int node_index(const graph *g, const char *s)
 {
+	// Iterates through the index map
 	for (int i = 0; i < g->nodes_added; i++)
 	{
+		// Checks if the nodes label and the searched for label is the same.
 		if (strcmp(((node*)array_1d_inspect_value(g->index_map, i))->src, s) == 0)
 		{
 			return i;
 		}
 	}
 
+	// Label is not in graph.
 	return -1;
 }
 
+/**
+ * new_node() - Creates a new node with label.
+ * @g: Pointer to Graph.
+ * @s: Label to give to node.
+ * 
+ * Returns: Pointer to node.
+*/
 node *new_node(graph *g, const char *s)
 {
+	// Allocates space for node.
 	node *new_node = malloc(sizeof(node));
 
+	// Allocates space for and copies the label for the node.
 	char *src_lbl = malloc(strlen(s) + 1);
 	strcpy(src_lbl, s);
 
+	// Assigns the label, index of the node and start seen value.
 	new_node->src = src_lbl;
 	new_node->index = g->nodes_added;
 	new_node->seen = false;
@@ -61,17 +81,20 @@ node *new_node(graph *g, const char *s)
 	return new_node;
 }
 
-void free_all_nodes(array_1d *nodes, int amount_nodes_added)
+/**
+ * free_node() - Handels the freeing of the nodes
+ * @in: Pointer to a node.
+ * 
+ * Returns: Nothing.
+*/
+void free_node(void *in)
 {
-	for (int i = 0; i < amount_nodes_added; i++)
-	{
-		node *n = array_1d_inspect_value(nodes, i);
+	node *n = in;
 
-		if (n != NULL && n->src != NULL)
-		{
-			free(n->src);
-			free(n);
-		}
+	if (n != NULL && n->src != NULL)
+	{
+		free(n->src);
+		free(n);
 	}
 }
 
@@ -87,6 +110,7 @@ void free_all_nodes(array_1d *nodes, int amount_nodes_added)
  */
 bool nodes_are_equal(const node *n1,const node *n2)
 {
+	// Compares the node labels, same label -> same node.
 	if (strcmp(n1->src, n2->src) == 0)
 	{
 		return true;
@@ -105,12 +129,15 @@ bool nodes_are_equal(const node *n1,const node *n2)
  */
 graph *graph_empty(int max_nodes)
 {
+	// Allocates memory for graph.
 	graph *new_graph = malloc(sizeof(graph));
 
+	// Assigns start values.
 	new_graph->nodes_added = 0;
 	new_graph->max_nodes = max_nodes;
 
-	new_graph->index_map = array_1d_create(0, max_nodes - 1, NULL);
+	// Creates the adjacency matrix (array_2d) and the "translation" map (array_1d).
+	new_graph->index_map = array_1d_create(0, max_nodes - 1, *free_node);
 	new_graph->matrix = array_2d_create(0, max_nodes - 1, 0, max_nodes - 1, free);
 
 	return new_graph;
@@ -124,10 +151,9 @@ graph *graph_empty(int max_nodes)
  */
 bool graph_is_empty(const graph *g)
 {
+	// Checks if the graph has any added nodes.
 	if (g->nodes_added == 0)
-	{
 		return true;
-	}
 	
 	return false;
 }
@@ -148,11 +174,21 @@ graph *graph_insert_node(graph *g, const char *s)
 	if (node_index(g, s) != -1)
 		return g;
 
+	// More nodes than said while constructing.
+	if (g->nodes_added >= g->max_nodes)
+	{
+		fprintf(stderr, "More nodes then stated!\n");
+		graph_kill(g);
+		exit(EXIT_FAILURE);
+	}
+
 	// Adds the node to the graph
 	array_1d_set_value(g->index_map, new_node(g, s), g->nodes_added);
 
+	// Increase the amount of nodes in the graph.
 	g->nodes_added += 1;
 
+	// Returns the modified graph.
 	return g;
 }
 
@@ -165,11 +201,14 @@ graph *graph_insert_node(graph *g, const char *s)
  */
 node *graph_find_node(const graph *g, const char *s)
 {
+	// Gets index of the node with label in s.
 	int index_of_node = node_index(g, s);
 	
+	// The node is not in the graph.
 	if (index_of_node == -1)
 		return NULL;
 
+	// Returns the node with the label in s.
 	return array_1d_inspect_value(g->index_map, index_of_node);
 }
 
@@ -182,6 +221,7 @@ node *graph_find_node(const graph *g, const char *s)
  */
 bool graph_node_is_seen(const graph *g, const node *n)
 {
+	// Returns the seen status for the node.
 	return n->seen;
 }
 
@@ -195,8 +235,10 @@ bool graph_node_is_seen(const graph *g, const node *n)
  */
 graph *graph_node_set_seen(graph *g, node *n, bool seen)
 {
+	// Sets the seen status for the node to seen.
 	n->seen = seen;
 
+	// Returns the graph.
 	return g;
 }
 
@@ -208,16 +250,18 @@ graph *graph_node_set_seen(graph *g, node *n, bool seen)
  */
 graph *graph_reset_seen(graph *g)
 {
+	// Graph is empty, we do not need to do anything.
 	if (graph_is_empty(g))
 		return g;
 
+	// Iterates through the loop and resets the seen status for all nodes.
 	for (int i = 0; i < g->nodes_added; i++)
 	{
 		node *node = array_1d_inspect_value(g->index_map, i);
-
 		node->seen = false;
 	}
 	
+	// Returns the graph.
 	return g;
 }
 
@@ -233,14 +277,18 @@ graph *graph_reset_seen(graph *g)
  */
 graph *graph_insert_edge(graph *g, node *n1, node *n2)
 {
+	// Checks if the nodes are in the graph or not. If not it exits early.
 	if (node_index(g, n1->src) == -1 || node_index(g, n2->src) == -1)
 		return NULL;
 	
+	// Allocates space for the integer representing an edge.
 	int *value = malloc(sizeof(int));
 	*value = 1;
 
+	// Sets the edge in the adjacency matrix.
 	array_2d_set_value(g->matrix, value, n1->index, n2->index);
 
+	// returns the modified graph.
 	return g;
 }
 
@@ -254,21 +302,24 @@ graph *graph_insert_edge(graph *g, node *n1, node *n2)
  */
 dlist *graph_neighbours(const graph *g,const node *n)
 {
+	// Creates empty list without a free function since we do not want the user to remove the nodes
+	// that will be in the list.
 	dlist *neighbors = dlist_empty(NULL);
 
+	// Iterates through the adjacency matrix checking for neighbors.
 	for (int i = 0; i < g->nodes_added; i++)
 	{
 		if (array_2d_has_value(g->matrix, n->index, i))
 		{
 			int *value = array_2d_inspect_value(g->matrix, n->index, i);
 
-			if (*value)
-			{
+			// Add neighbor to the list if it marked as neighbor in the adjacency matrix.
+			if (*value == 1)
 				dlist_insert(neighbors, array_1d_inspect_value(g->index_map, i), dlist_first(neighbors));
-			}
 		}
 	}
 
+	// Returns the list of neighbors.
 	return neighbors;
 }
 
@@ -282,8 +333,10 @@ dlist *graph_neighbours(const graph *g,const node *n)
  */
 void graph_kill(graph *g)
 {
+	// Kills the adjacency matrix
 	array_2d_kill(g->matrix);
-	free_all_nodes(g->index_map, g->nodes_added);
+	// Kills the index map and frees the resources used by the nodes.
 	array_1d_kill(g->index_map);
+	// Frees the remaining resources used by the graph.
 	free(g);
 }
