@@ -56,13 +56,14 @@ def mem_leak_test(file_name):
 
 
 # Specify the file path here
-files = ["graph"] # "graph2"
+files = ["graph", "graph2", "is_connected"]
 comp_err = 0
 update_hand_in_date(files[0])
 update_hand_in_date(files[1])
+update_hand_in_date(files[2])
 
-for file in files:
-    comp_err += compile_file(file)
+compile_file(files[0])
+# compile_file(files[1])
 
 if comp_err > 0:
     quit()

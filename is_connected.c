@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
 
@@ -8,6 +9,18 @@
 
 #define MAXNODENAME 40
 #define BUFSIZE 400
+
+/**
+ * With the help of graph traverses a inputed map and searches
+ * if two nodes are connecting of not.
+ * 
+ * Author: Felix Vallström (c23fvm)
+ * 
+ * Hand in date: 2024-02-20
+ * 
+ * Version:
+ *   2024-02-20: v1.0. First hand in
+*/
 
 // ====== HELPER FUNCTIONS
 
@@ -201,8 +214,38 @@ bool find_path(graph *g, node *src, node *dest)
 	return false;
 }
 
+void check_nodes_search(graph *map, char *buf1, char *buf2)
+{
+	// Fetches the nodes if they exist
+	node *src_node = graph_find_node(map, buf1);
+	node *dest_node = graph_find_node(map, buf2);
+
+	// If the start node does not exist we say that and go back.
+	if (src_node == NULL)
+	{
+		fprintf(stderr, "Could not find node %s\n", buf1);
+		return;
+	}
+
+	// If the destination node does not exist we say that and go back.
+	if (dest_node == NULL)
+	{
+		fprintf(stderr, "Could not find node %s\n", buf2);
+		return;
+	}
+	
+	// Look for a way between the nodes, if it exist we say that and if it does not we say that.
+	if (find_path(map, src_node, dest_node))
+		fprintf(stderr, "There is a path from %s to %s.\n", buf1, buf2);
+	else
+		fprintf(stderr, "There is no path from %s to %s.\n", buf1, buf2);
+
+}
+
 int main(int argc, char const *argv[])
 {
+	bool quit = false;
+
 	if (argc < 2 || argc > 2)
 	{
 		fprintf(stderr, "Expected one argument to map file...\n");
@@ -211,7 +254,42 @@ int main(int argc, char const *argv[])
 	
 	graph *map = parse_map(fopen(argv[1], "r"));
 
-	// char input_buffer[BUFSIZE];
+	char input_buffer[MAXNODENAME * 2];
+
+	do
+	{
+		printf("Enter origin and destination (quit to exit): ");
+		if (!fgets(input_buffer, sizeof(input_buffer), stdin))
+		{
+			fprintf(stderr, "Error reading input!\n");
+			return EXIT_FAILURE;
+		}
+		
+		char src_lbl[MAXNODENAME];
+		char dest_lbl[MAXNODENAME];
+		int parsed = sscanf(input_buffer, "%40s %40s", src_lbl, dest_lbl);
+
+		if (parsed == EOF)
+		{
+			fprintf(stderr, "Error parsing input!\n");
+			return EXIT_FAILURE;
+		}
+		
+		if (parsed == 1 && strcmp(src_lbl, "quit") == 0)
+		{
+			printf("Normal exit.\n");
+			quit = true;
+		}
+		else if (parsed == 2)
+		{
+			check_nodes_search(map, src_lbl, dest_lbl);
+		}
+		else
+		{
+			fprintf(stderr, "Invalid input..\n");
+		}
+	} while (!quit);
+	
 
 	graph_kill(map);
 	
