@@ -18,7 +18,7 @@ The nodes can be reset every time we perform a new search. This way we do not ha
 search.
 
 ## graph.c
-This implementation will be made using a connection matrix. 
+This implementation will be made using a adjacency matrix. 
 
 ## graph2.c
 This implementetion will be made using a dynamic datatype. Table?
