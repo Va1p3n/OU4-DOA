@@ -259,7 +259,7 @@ dlist *graph_neighbours(const graph *g,const node *n)
 {
 	dlist *neighbors = dlist_empty(NULL);
 
-	for (int i = 0; i < g->max_nodes; i++)
+	for (int i = 0; i < g->nodes_added; i++)
 	{
 		if (array_2d_has_value(g->matrix, n->index, i))
 		{

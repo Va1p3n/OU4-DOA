@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <graph.h>
 #include <stdbool.h>
+
+#include <graph.h>
+#include <queue.h>
 
 #define MAXNODENAME 40
 #define BUFSIZE 400
@@ -144,7 +146,60 @@ graph *parse_map(FILE *file)
 	return map;
 }
 
+bool find_path(graph *g, node *src, node *dest)
+{
+	// Reset the seen status of the nodes in the map.
+	graph_reset_seen(g);
 
+	// Sets the startnode as seen and adds it to the processing queue.
+	// Queue does not get a free_func since we do not want to free the nodes.
+	g = graph_node_set_seen(g, src, true);
+	queue *nodes_to_process = queue_enqueue(queue_empty(NULL), src);
+
+	// This loop ensures that all nodes that need to be processed gets processed.
+	while (!queue_is_empty(nodes_to_process))
+	{
+		// Gets the node that we will look at this iteration.
+		node *node_now_process = queue_front(nodes_to_process);
+		nodes_to_process = queue_dequeue(nodes_to_process);
+
+		// This checks if the node is the one that we are looking for.
+		if (nodes_are_equal(dest, node_now_process))
+		{
+			// Kills the queue since we found our node.
+			queue_kill(nodes_to_process);
+			return true;
+		}
+
+		// Get all of the neighboring nodes.
+		dlist *node_neighbors = graph_neighbours(g, node_now_process);
+
+		while (!dlist_is_empty(node_neighbors))
+		{
+			// Get the first neighbor in the list
+			node *now_first_neighbor_node = dlist_inspect(node_neighbors, dlist_first(node_neighbors));
+
+			// If the node is not previously seen, we add it to the process queue and mark it as seen.
+			if (!graph_node_is_seen(g, now_first_neighbor_node))
+			{
+				g = graph_node_set_seen(g, now_first_neighbor_node, true);
+				nodes_to_process = queue_enqueue(nodes_to_process, now_first_neighbor_node);
+			}
+			
+			// Remove the neighbor from the queue.
+			dlist_remove(node_neighbors, dlist_first(node_neighbors));
+		}
+
+		// Kills the list to not cause memory leaks.
+		dlist_kill(node_neighbors);
+	}
+	
+	// Kills the queue since we are now done.
+	queue_kill(nodes_to_process);
+
+	// Node was not found.
+	return false;
+}
 
 int main(int argc, char const *argv[])
 {
@@ -156,13 +211,7 @@ int main(int argc, char const *argv[])
 	
 	graph *map = parse_map(fopen(argv[1], "r"));
 
-	fprintf(stderr, "works..\n");
-
-	if (graph_find_node(map, "UME") != NULL);
-	{
-		fprintf(stderr, "works 2..\n");
-	}
-	
+	// char input_buffer[BUFSIZE];
 
 	graph_kill(map);
 	
