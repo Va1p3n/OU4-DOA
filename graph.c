@@ -58,12 +58,11 @@ int node_index(const graph *g, const char *s)
 
 /**
  * new_node() - Creates a new node with label.
- * @g: Pointer to Graph.
  * @s: Label to give to node.
  * 
  * Returns: Pointer to node.
 */
-node *new_node(graph *g, const char *s)
+node *new_node(const char *s)
 {
 	// Allocates space for node.
 	node *new_node = malloc(sizeof(node));
@@ -181,7 +180,7 @@ graph *graph_insert_node(graph *g, const char *s)
 	}
 
 	// Adds the node to the graph
-	array_1d_set_value(g->index_map, new_node(g, s), g->nodes_added);
+	array_1d_set_value(g->index_map, new_node(s), g->nodes_added);
 
 	// Increase the amount of nodes in the graph.
 	g->nodes_added += 1;
