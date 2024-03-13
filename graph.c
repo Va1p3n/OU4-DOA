@@ -21,7 +21,6 @@
 
 typedef struct node {
 	char *src;
-	int index;
 	bool seen;
 } node;
 
@@ -75,7 +74,6 @@ node *new_node(graph *g, const char *s)
 
 	// Assigns the label, index of the node and start seen value.
 	new_node->src = src_lbl;
-	new_node->index = g->nodes_added;
 	new_node->seen = false;
 
 	return new_node;
@@ -277,8 +275,12 @@ graph *graph_reset_seen(graph *g)
  */
 graph *graph_insert_edge(graph *g, node *n1, node *n2)
 {
+	// Get index of nodes, -1 if they are not in this graph.
+	int index_of_node1 = node_index(g, n1->src);
+	int index_of_node2 = node_index(g, n2->src);
+
 	// Checks if the nodes are in the graph or not. If not it exits early.
-	if (node_index(g, n1->src) == -1 || node_index(g, n2->src) == -1)
+	if (index_of_node1 == -1 || index_of_node2 == -1)
 		return NULL;
 	
 	// Allocates space for the integer representing an edge.
@@ -286,7 +288,7 @@ graph *graph_insert_edge(graph *g, node *n1, node *n2)
 	*value = 1;
 
 	// Sets the edge in the adjacency matrix.
-	array_2d_set_value(g->matrix, value, n1->index, n2->index);
+	array_2d_set_value(g->matrix, value, index_of_node1, index_of_node2);
 
 	// returns the modified graph.
 	return g;
@@ -306,12 +308,16 @@ dlist *graph_neighbours(const graph *g,const node *n)
 	// that will be in the list.
 	dlist *neighbors = dlist_empty(NULL);
 
+	// Get index of node
+	int index_of_node = node_index(g, n->src);
+
 	// Iterates through the adjacency matrix checking for neighbors.
 	for (int i = 0; i < g->nodes_added; i++)
 	{
-		if (array_2d_has_value(g->matrix, n->index, i))
+		// If no value has been set there is no connection.
+		if (array_2d_has_value(g->matrix, index_of_node, i))
 		{
-			int *value = array_2d_inspect_value(g->matrix, n->index, i);
+			int *value = array_2d_inspect_value(g->matrix, index_of_node, i);
 
 			// Add neighbor to the list if it marked as neighbor in the adjacency matrix.
 			if (*value == 1)
