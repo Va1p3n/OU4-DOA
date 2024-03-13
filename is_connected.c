@@ -107,19 +107,41 @@ int parse_map_line(const char *buf, char *n1, char *n2)
 
 // ====== START
 
-graph *add_edge_to_map(graph *map, char *src, char *dst)
+/**
+ * add_edge_to_map() - Adds the nodes to the map then adds the connection between them.
+ * @map: A pointer to the graph.
+ * @src: A string (label).
+ * @dest: A string (label).
+ * 
+ * Returns: A pointer to the modified graph
+*/
+graph *add_edge_to_map(graph *map, char *src, char *dest)
 {
-	map = graph_insert_node(map, src);
-	map = graph_insert_node(map, dst);
+	// Checks if the source node already is in the graph, if it is not we add it.
+	if (graph_find_node(map, src) == NULL)
+		map = graph_insert_node(map, src);
 
+	// Checks if the destination node already is in the graph, if it is not we add it.
+	if (graph_find_node(map, dest) == NULL)
+		map = graph_insert_node(map, dest);
+
+	// Gets the node-structure for each node.
 	node *src_node = graph_find_node(map, src);
-	node *dst_node = graph_find_node(map, dst);
+	node *dst_node = graph_find_node(map, dest);
 
+	// Adds the edge to the graph
 	map = graph_insert_edge(map, src_node, dst_node);
 
+	// Returns the modified graph.
 	return map;
 }
 
+/**
+ * parse_map() - Reads the file and parses it into a graph.
+ * @file: A pointer to the map-file.
+ * 
+ * Returns: A pointer to the graph representing the graph.
+*/
 graph *parse_map(FILE *file)
 {
 	graph *map;
@@ -128,27 +150,43 @@ graph *parse_map(FILE *file)
 
 	while (fgets(buffer, 60, file) != NULL)
 	{
+		// Skips the line if it is a comment or blank.
 		if (!line_is_blank(buffer) && !line_is_comment(buffer))
 		{
 			if (parsed == 0)
 			{
-				int nodes;
-				sscanf(&buffer[first_non_white_space(buffer)], "%d", &nodes);
-				map = graph_empty(nodes);
+				int max_edges;
+				
+				// Checks if the first line that we care about is a integer to represent the amount of edges
+				// the graph has. If it is not, we close the file and exit the program.
+				if (sscanf(&buffer[first_non_white_space(buffer)], "%d", &max_edges) != 1)
+				{
+					fprintf(stderr, "Wrong format on map file!\n");
+					fclose(file);
+					exit(EXIT_FAILURE);
+				}
+
+				// Makes the max amount of nodes that we can store twice the amount of edges,
+				// since the graph could just be pairs of nodes where one node goes to just one other node 
+				// that does not go anywhere.
+				map = graph_empty(max_edges * 2);
 				
 				parsed += 1;
 			}
 			else
 			{
+				// Makes space to store the source- & destination node labels.
 				char src[MAXNODENAME];
 				char dst[MAXNODENAME];
 				
+				// Checks if parsing the input line was correct.
 				if (parse_map_line(buffer, src, dst) != 2)
 				{
 					fprintf(stderr, "Parsing line error, make sure map file is correct!\n");
 					exit(EXIT_FAILURE);
 				}
 
+				// Adds the edge to the map.
 				map = add_edge_to_map(map, src, dst);
 			}
 		}
@@ -159,6 +197,14 @@ graph *parse_map(FILE *file)
 	return map;
 }
 
+/**
+ * find_path() - Searches for if there is a way to get from source node to destination node.
+ * @g: A pointer to the graph.
+ * @src: A pointer to the source node.
+ * @dest: A pointer to the destination node.
+ * 
+ * Returns: A boolean for whether there is a path that exists.
+*/
 bool find_path(graph *g, node *src, node *dest)
 {
 	// Reset the seen status of the nodes in the map.
@@ -214,6 +260,11 @@ bool find_path(graph *g, node *src, node *dest)
 	return false;
 }
 
+/**
+ * check_nodes_search() - Checks all node input from the program.
+ * @map: A pointer to the map graph.
+ * @src: A string
+*/
 void check_nodes_search(graph *map, char *buf1, char *buf2)
 {
 	// Fetches the nodes if they exist
@@ -236,61 +287,85 @@ void check_nodes_search(graph *map, char *buf1, char *buf2)
 	
 	// Look for a way between the nodes, if it exist we say that and if it does not we say that.
 	if (find_path(map, src_node, dest_node))
-		fprintf(stderr, "There is a path from %s to %s.\n", buf1, buf2);
+		printf("There is a path from %s to %s.\n", buf1, buf2);
 	else
-		fprintf(stderr, "There is no path from %s to %s.\n", buf1, buf2);
+		printf("There is no path from %s to %s.\n", buf1, buf2);
 
 }
 
 int main(int argc, char const *argv[])
 {
+	// Loop handler variable
 	bool quit = false;
 
+	// Makes sure that the correct amount of arguments were given 
 	if (argc < 2 || argc > 2)
 	{
 		fprintf(stderr, "Expected one argument to map file...\n");
 		exit(EXIT_FAILURE);
 	}
 	
-	graph *map = parse_map(fopen(argv[1], "r"));
+	// Opens the file.
+	FILE *file = fopen(argv[1], "r");
+	
+	// Checks that the file was opened correctly
+	if (file == NULL) 
+	{
+		fprintf(stderr, "Invalid file name!\n");
+		return EXIT_FAILURE;
+	}
 
-	char input_buffer[MAXNODENAME * 2];
+	// Parses the file
+	graph *map = parse_map(file);
 
+	// Stores the input for the program
+	char input_buffer[BUFSIZE];
+
+	// Input loop
 	do
 	{
 		printf("Enter origin and destination (quit to exit): ");
+
+		// Reads input
 		if (!fgets(input_buffer, sizeof(input_buffer), stdin))
 		{
 			fprintf(stderr, "Error reading input!\n");
 			return EXIT_FAILURE;
 		}
 		
+		// Makes space for the labels
 		char src_lbl[MAXNODENAME];
 		char dest_lbl[MAXNODENAME];
+
+		// Parses the input
 		int parsed = sscanf(input_buffer, "%40s %40s", src_lbl, dest_lbl);
 
+		// Checks if the parsing failed
 		if (parsed == EOF)
 		{
 			fprintf(stderr, "Error parsing input!\n");
+			graph_kill(map); 	// Releases the resources used by the map
 			return EXIT_FAILURE;
 		}
 		
+		// Checks if the user wanted to quit
 		if (parsed == 1 && strcmp(src_lbl, "quit") == 0)
 		{
 			printf("Normal exit.\n");
 			quit = true;
 		}
-		else if (parsed == 2)
+		else if (parsed == 2) // The user entered two strings/labels
 		{
 			check_nodes_search(map, src_lbl, dest_lbl);
 		}
-		else
+		else // The user entered something else/extra
 		{
 			fprintf(stderr, "Invalid input..\n");
 		}
 	} while (!quit);
 	
+	// Releases the resources used by the map.
 	graph_kill(map);
 	
-	return 0;
+	return EXIT_SUCCESS;
 }

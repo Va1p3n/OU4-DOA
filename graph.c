@@ -170,7 +170,7 @@ bool graph_is_empty(const graph *g)
  */
 graph *graph_insert_node(graph *g, const char *s)
 {
-	// The node is already in the graph
+	// The node is already in the graph. This since we can not have two nodes with the same label.
 	if (node_index(g, s) != -1)
 		return g;
 
