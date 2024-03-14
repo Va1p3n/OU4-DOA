@@ -25,6 +25,11 @@
 // ====== HELPER FUNCTIONS
 
 /**
+ * @NOTE: The functions under this section are the same helper function from is_connected_help_functions.c 
+ * that we were given in canvas.
+*/
+
+/**
  * @brief Find position of first non-whitespace character.
  *
  * @param s - string to search.
