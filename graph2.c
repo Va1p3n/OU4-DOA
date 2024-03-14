@@ -170,8 +170,9 @@ graph *graph_empty(int max_nodes)
 	// Allocates space for the graph.
 	graph *new_graph = malloc(sizeof(graph));
 
-	// Saves the max amount of nodes.
+	// Saves the max amount of nodes and set nodes_added to 0.
 	new_graph->max_nodes = max_nodes;
+	new_graph->nodes_added = 0;
 	
 	new_graph->nodes = dlist_empty(*free_node);
 
